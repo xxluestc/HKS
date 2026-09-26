@@ -1,66 +1,28 @@
-# ESP32 Home Event Sensor
+# 家庭提醒助手｜硬件接口说明
 
-## 项目说明
+本项目有**两块独立开发板、两条通信链路**。本仓库原有的 ESP32 程序属于**传感器开发板**；另一块是负责语音交互的**正点原子 BOX0**。队友请按所负责的接口查看对应文档。
 
-ESP32 负责通过 WiFi 向后端上报家庭状态事件。
-
-当前只上报两种事件：
-
-- `HOME_EVENT`：用户回到家
-- `LEAVE_EVENT`：用户离开家
-
-设备端只负责采集、判断和传输事件，不负责用户状态管理、提醒策略或数据库逻辑。
-
-## 后端接入接口
-
-ESP32 向后端发送：
-
-```http
-POST /event
-Content-Type: application/json
-```
-
-请求体：
-
-```json
-{
-	"event": "HOME_EVENT",
-	"device": "esp32_sensor"
-}
-```
-
-`event` 的值为 `HOME_EVENT` 或 `LEAVE_EVENT`，`device` 当前固定为 `esp32_sensor`。
-
-后端收到事件后，直接根据 `event` 处理业务，不需要依赖 ESP32 使用了什么传感器或按键。
-
-建议成功响应：
-
-```json
-{
-	"status": "ok"
-}
-```
-
-## 本地联调
-
-仓库中的 `server.py` 是一个简单的 Flask 接收示例：
-
-```bash
-python server.py
-```
-
-默认监听 `0.0.0.0:5000`，接口地址为：
+| 开发板 | 连接对象 | 对接文档 | 本仓库内容 |
+| --- | --- | --- | --- |
+| 传感器 ESP32 开发板 | 通过 HTTP `POST /event` 上报给业务后端 | [传感器端接口](sensor/README.md) | [`esp32_sensor.ino`](sensor/esp32_sensor.ino)、本地接收示例 [`server.py`](sensor/server.py) |
+| 语音 BOX0 开发板 | 通过 OTA/配置接口取得语音服务地址，再通过 WebSocket 连接 Xiaozhi Server | [语音端接口](voice/README.md) | 对接说明；BOX0 固件不在本仓库 |
 
 ```text
-http://<后端设备IP>:5000/event
+传感器 ESP32 板 ── HTTP POST /event ──→ 业务后端
+                                           ↑
+                                           │ 业务数据交互由软件端约定
+                                           │
+BOX0 板 ── OTA/配置 + WebSocket ──→ Xiaozhi 语音服务端
 ```
 
-ESP32 端需要将 `esp32_sensor.ino` 中的 `serverUrl` 修改为实际后端地址，并配置 WiFi 信息。
+两块板**不直接通信**。传感器事件进入业务后端；BOX0 的语音经 Xiaozhi Server 处理。后续要让语音助手利用传感器状态，由语音服务端与业务后端协作完成。
 
-## 文件说明
+## 对接边界
 
-| 文件 | 说明 |
-| --- | --- |
-| `esp32_sensor.ino` | ESP32 端程序，负责上报事件 |
-| `server.py` | Flask 本地联调服务 |
-| `event_api.md` | 接口细节说明 |
+- **硬件侧**：维护传感器事件格式、BOX0 固件与服务器地址配置，完成两块板各自的联网和联调。
+- **业务后端**：接收传感器事件，管理计划、状态和提醒等业务数据。
+- **语音服务端**：建议基于 [xiaozhi-esp32-server](https://github.com/xinnan-tech/xiaozhi-esp32-server) 部署；提供 BOX0 可访问的 OTA/配置与 WebSocket 服务，配置语音/AI 链路。内部 Agent、模型和业务后端的调用方式由软件端确定。
+
+首次联调建议分别验证：传感器板能上报 `HOME_EVENT` / `LEAVE_EVENT`；BOX0 能完成一次 ASR → LLM → TTS 的语音往返。两条链路都通后再做业务联动。
+
+> `sensor/server.py` 仅是保存最近事件的本地联调示例，不代表正式业务后端，也不提供语音服务。

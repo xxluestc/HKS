@@ -1,10 +1,11 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 
-const char* ssid="C2-114";
-const char* password="12345678";
+// 联调前填写本地 WiFi；不要将真实凭据提交到仓库。
+const char* ssid="YOUR_WIFI_SSID";
+const char* password="YOUR_WIFI_PASSWORD";
 
-String serverUrl="http://192.168.110.25:5000/event";
+String serverUrl="http://YOUR_BACKEND_IP:5000/event";
 
 #define LED_LEAVE 23
 #define LED_HOME 25
