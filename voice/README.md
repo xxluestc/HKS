@@ -1,6 +1,6 @@
 # 语音端接口｜BOX0 开发板 ↔ Xiaozhi Server
 
-此处是**语音 BOX0 开发板**的接口，**不是传感器 ESP32 开发板**。BOX0 固件基于 [xiaozhi-esp32](https://github.com/78/xiaozhi-esp32)。软件端建议基于 [xiaozhi-esp32-server](https://github.com/xinnan-tech/xiaozhi-esp32-server) 部署语音服务，先打通 BOX0 → ASR → LLM → TTS → BOX0 的完整对话。
+此处是**语音 BOX0 开发板**的接口。BOX0 固件基于 [xiaozhi-esp32](https://github.com/78/xiaozhi-esp32)。软件端建议基于 [xiaozhi-esp32-server](https://github.com/xinnan-tech/xiaozhi-esp32-server) 部署语音服务，先打通 BOX0 → ASR → LLM → TTS → BOX0 的完整对话。
 
 | 硬件侧提供/负责 | 软件端提供/负责 |
 | --- | --- |
@@ -34,7 +34,7 @@ OTA 响应中的 WebSocket 配置示意：
 }
 ```
 
-以上仅展示与语音连接相关的字段；完整 OTA 响应以实际服务实现为准。当前本地 xiaozhi-esp32 v2.0.3 源码优先读取设备保存的 `wifi.ota_url`，没有时使用编译配置 `CONFIG_OTA_URL`；从 OTA 响应的 `websocket` 对象保存连接配置。若 BOX0 固件是厂商定制版，联调前以实机源码和启动日志确认 OTA 地址入口。服务端的简单部署与全模块部署可能采用不同 OTA 端口，见[服务端固件对接说明](https://github.com/xinnan-tech/xiaozhi-esp32-server/blob/main/docs/firmware-build.md)。
+以上仅展示与语音连接相关的字段；完整 OTA 响应以实际服务实现为准。当前本地 xiaozhi-esp32 v2.0.3 源码优先读取设备保存的 `wifi.ota_url`，没有时使用编译配置 `CONFIG_OTA_URL`；从 OTA 响应的 `websocket` 对象保存连接配置。服务端的简单部署与全模块部署可能采用不同 OTA 端口，见[服务端固件对接说明](https://github.com/xinnan-tech/xiaozhi-esp32-server/blob/main/docs/firmware-build.md)。
 
 ## WebSocket 协议要点
 
