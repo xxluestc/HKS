@@ -78,4 +78,4 @@ BOX0 不直接接收传感器板的 `POST /event`。Xiaozhi 的 DoorMinder Provi
 
 ## 联调交付与验收
 
-软件端提供可访问的 OTA URL、该 OTA 响应实际下发的 WebSocket URL、协议版本和认证要求。当前 Provider → DoorMinder 的软件 HTTP 链路已用模拟 ASR 文字验证；尚未进行实际 BOX0 音频与传感器板测试。硬件阶段确认 BOX0 获取配置、完成 WebSocket/`hello` 握手，说一句话后服务端收到音频、生成业务回复、BOX0 播放语音，再与[传感器事件接口](../sensor/README.md)联动。
+软件端提供可访问的 OTA URL、该 OTA 响应实际下发的 WebSocket URL、协议版本和认证要求。当前 Provider → DoorMinder 的 HTTP 链路已用模拟 ASR 文字验证；Xiaozhi 的 OTA 响应和 WebSocket/`hello` 握手也已用本机模拟客户端验证。尚未进行实际 BOX0 音频与传感器板测试。硬件阶段确认 BOX0 获取配置、完成握手，说一句话后服务端收到音频、生成业务回复、BOX0 播放语音，再与[传感器事件接口](../sensor/README.md)联动。
