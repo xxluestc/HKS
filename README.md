@@ -25,6 +25,6 @@ BOX0 板 ── OTA/配置 + WebSocket ──→ Xiaozhi 语音服务端 :8003/:
 - **业务后端**：接收传感器事件，管理计划、状态和提醒等业务数据。
 - **语音服务端**：基于 [xiaozhi-esp32-server](https://github.com/xinnan-tech/xiaozhi-esp32-server) 部署，提供 BOX0 可访问的 OTA/配置与 WebSocket 服务；通过 DoorMinder Provider 调用业务后端的 `/api/voice/session/open` 与 `/api/assistant/input`。
 
-当前先验证 BOX0 的软件链路与小程序本机调用；实际 BOX0 音频往返和传感器 `HOME_EVENT` / `LEAVE_EVENT` 上报放到实物联调阶段。
+已用实际 BOX0 验证语音上传、识别、业务后端固定测试回复和语音播报；小程序本机聊天也已验证。传感器 `HOME_EVENT` / `LEAVE_EVENT` 的实物上报，以及正式模型回复仍待联调。语音实测详情和设备当前提示见[语音端接口](voice/README.md)。
 
 > `sensor/server.py` 仅是保存最近事件的本地联调示例，不代表正式业务后端，也不提供语音服务。

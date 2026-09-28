@@ -78,4 +78,4 @@ BOX0 不直接接收传感器板的 `POST /event`。Xiaozhi 的 DoorMinder Provi
 
 ## 联调交付与验收
 
-软件端提供可访问的 OTA URL、该 OTA 响应实际下发的 WebSocket URL、协议版本和认证要求。当前 Provider → DoorMinder 的 HTTP 链路已用模拟 ASR 文字验证；Xiaozhi 的 OTA 响应和 WebSocket/`hello` 握手也已用本机模拟客户端验证。尚未进行实际 BOX0 音频与传感器板测试。硬件阶段确认 BOX0 获取配置、完成握手，说一句话后服务端收到音频、生成业务回复、BOX0 播放语音，再与[传感器事件接口](../sensor/README.md)联动。
+软件端提供可访问的 OTA URL、该 OTA 响应实际下发的 WebSocket URL、协议版本和认证要求。2026-09-28 已用实际 BOX0 在同一局域网完成 OTA、WebSocket/`hello`、Opus 上传、ASR、DoorMinder 固定测试回复、TTS 下发和设备播报。设备曾将“今天带钥匙”识别并播报固定回复，服务端与后端接口返回正常。设备屏幕在会话后仍会出现“服务器已断开，请唤醒或者按下M键重连”提示，并有断开后重连记录；提示原因尚待确认。该设备外壳标注 BOX0，OTA 上报固件型号 `atk-dnesp32s3-box-v0`、版本 `1.6.6`，与本地准备的 BOX0 `v2.0.3` 固件名称不同；刷机前须核对硬件版本。正式业务模型回复和[传感器事件接口](../sensor/README.md)的实物联动尚未验证。
