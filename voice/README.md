@@ -1,25 +1,25 @@
 # 语音端接口｜BOX0 开发板 ↔ Xiaozhi Server
 
-此处是**语音 BOX0 开发板**的接口。BOX0 固件基于 [xiaozhi-esp32](https://github.com/78/xiaozhi-esp32)。软件端建议基于 [xiaozhi-esp32-server](https://github.com/xinnan-tech/xiaozhi-esp32-server) 部署语音服务，先打通 BOX0 → ASR → LLM → TTS → BOX0 的完整对话。
+此处是**语音 BOX0 开发板**的接口，**不是传感器 ESP32 开发板**。BOX0 固件基于 [xiaozhi-esp32](https://github.com/78/xiaozhi-esp32)。软件端使用 [xiaozhi-esp32-server](https://github.com/xinnan-tech/xiaozhi-esp32-server) 承接 BOX0 的音频连接，使用 [DoorMinder Provider](https://github.com/Joycealien/doorminder/tree/feature/box0-xiaozhi-bridge/voice_bridge) 对接业务后端。
 
 | 硬件侧提供/负责 | 软件端提供/负责 |
 | --- | --- |
 | BOX0 固件、联网、麦克风与扬声器；将设备的 OTA/配置地址指向联调服务 | 可从 BOX0 所在网络访问的 OTA/配置接口和 WebSocket 服务 |
-| 按固件原有 Xiaozhi 协议连接、上传语音、播放回复 | 部署服务并配置可用的 ASR、LLM、TTS；后续按需接入业务后端 |
+| 按固件原有 Xiaozhi 协议连接、上传语音、播放回复 | 部署服务并配置可用的 ASR、TTS；DoorMinder Provider 把识别文字送入业务后端 |
 | 用服务端给出的地址与协议版本完成联调 | 向硬件侧提供实际 OTA URL、WebSocket URL、协议版本以及必要的认证配置 |
 
-模型选择、Prompt、Agent、工具调用与业务后端接口由软件端自行设计。本接口文档只约定 BOX0 与语音服务端的连接边界。
+业务后端接口由软件端维护。本接口文档约定 BOX0 与语音服务端的连接边界及当前联调地址。
 
 ## 两个地址
 
 1. **OTA/配置 URL**：BOX0 上电后访问的 HTTP 接口。它向设备下发 WebSocket 的 `url`、可选 `token` 和 `version` 等配置；它也可用于固件升级检查。
 2. **WebSocket URL**：BOX0 开始语音会话时连接的语音服务。文本帧是 JSON 控制消息，二进制帧是 Opus 音频。
 
-联调地址示意，**IP、路径和端口都以软件端实际部署为准**：
+当前本机联调配置如下。`192.168.110.25` 是本次电脑的 WLAN 地址；实物接入时按 BOX0 所在网络重新确认可达 IPv4：
 
 ```text
-OTA/配置：http://<服务端IP>:8003/xiaozhi/ota/
-WebSocket：ws://<服务端IP>:8000/xiaozhi/v1/
+OTA/配置：http://192.168.110.25:8003/xiaozhi/ota/
+WebSocket：ws://192.168.110.25:8001/xiaozhi/v1/
 ```
 
 OTA 响应中的 WebSocket 配置示意：
@@ -27,8 +27,7 @@ OTA 响应中的 WebSocket 配置示意：
 ```json
 {
   "websocket": {
-    "url": "ws://<服务端IP>:8000/xiaozhi/v1/",
-    "token": "<按服务端配置提供的令牌>",
+    "url": "ws://192.168.110.25:8001/xiaozhi/v1/",
     "version": 1
   }
 }
@@ -71,12 +70,12 @@ OTA 响应中的 WebSocket 配置示意：
 ## 与业务后端的关系
 
 ```text
-BOX0 板 ── WebSocket ──→ Xiaozhi 语音服务端 ──→ 业务后端
+BOX0 板 ── WebSocket ──→ Xiaozhi 语音服务端 ── HTTP ──→ DoorMinder 业务后端
 传感器 ESP32 板 ── HTTP POST /event ───────────→ 业务后端
 ```
 
-BOX0 不直接接收传感器板的 `POST /event`。语音服务端如何查询计划、状态或触发提醒，由软件端和业务后端自行约定；这里不预设其内部 Agent 或 API 形式。
+BOX0 不直接接收传感器板的 `POST /event`。Xiaozhi 的 DoorMinder Provider 将 ASR 文字经 `POST /api/voice/session/open` 和 `POST /api/assistant/input`（`device: "box0"`）送给业务后端，收到 `reply` 后由 TTS 播报。后端保留传感器已触发的 HOME/LEAVE 模式。完整部署步骤见 [语音桥接说明](https://github.com/Joycealien/doorminder/blob/feature/box0-xiaozhi-bridge/voice_bridge/README.md)。
 
 ## 联调交付与验收
 
-软件端提供可访问的 OTA URL、该 OTA 响应实际下发的 WebSocket URL、协议版本和认证要求。硬件侧确认 BOX0 获取配置、完成 WebSocket/`hello` 握手，随后说一句“你好”，验证服务端收到音频、生成回复，BOX0 能播放语音。语音往返打通后，再与业务后端及[传感器事件接口](../sensor/README.md)联动。
+软件端提供可访问的 OTA URL、该 OTA 响应实际下发的 WebSocket URL、协议版本和认证要求。当前 Provider → DoorMinder 的软件 HTTP 链路已用模拟 ASR 文字验证；尚未进行实际 BOX0 音频与传感器板测试。硬件阶段确认 BOX0 获取配置、完成 WebSocket/`hello` 握手，说一句话后服务端收到音频、生成业务回复、BOX0 播放语音，再与[传感器事件接口](../sensor/README.md)联动。
